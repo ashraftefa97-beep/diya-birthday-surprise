@@ -180,8 +180,8 @@ const card=document.querySelector('.card'),toast=document.querySelector('.toast'
 let screen=0,muted=false,dodges=0,trollClicks=0,slider=74,bubblesLeft=12,boxTries=0,timerResetDone=false,candles=5,relit=false,memState={first:null,lock:false,matched:0,done:[]},holdRAF=null,holdStart=0,envelopeWrong=0,heartHits=0,checkCount=0,galleryIndex=0,scratchMoves=0,doorWrong=0,seqStep=0,catchHits=0,dontResets=0,captchaPicked=new Set();
 const memorySymbols=['♡','✦','~','●','♡','✦','~','●'];
 let memoryOrder=[0,3,5,6,2,7,1,4];
-const screens=[intro,choice,runaway,trollButton,hype,bubbles,heartSpam,boxes,patience,checklist,cake,fakeFinal,scratchCard,memory,phraseLock,hold,envelopes,almostThere,doors,sequenceTest,catchStar,dontPress,captchaTest,complimentPick,wishStars,tinyLetter,finale];
-const sceneThemes=['intro','choice','runaway','troll','hype','bubbles','heart','gifts','wait','form','cake','fake','scratch','memory','lock','hold','mail','almost','doors','sequence','catch','dont','captcha','compliment','wishes','tinyLetter','final'];
+const screens=[intro,choice,runaway,trollButton,hype,bubbles,heartSpam,boxes,patience,checklist,cake,fakeFinal,scratchCard,memory,phraseLock,hold,envelopes,almostThere,doors,sequenceTest,catchStar,dontPress,captchaTest,complimentPick,wishStars,miniQuiz,tinyLetter,finale];
+const sceneThemes=['intro','choice','runaway','troll','hype','bubbles','heart','gifts','wait','form','cake','fake','scratch','memory','lock','hold','mail','almost','doors','sequence','catch','dont','captcha','compliment','wishes','miniQuiz','tinyLetter','final'];
 let navLocked=false,screenEpoch=0,screenController=null,activeTimers=new Set(),activeRafs=new Set();
 function clearScreenRuntime(){
   if(screenController){try{screenController.abort()}catch(e){}}
@@ -233,7 +233,32 @@ function dontPress(){return '<div class="eyebrow">أخيرًا اختبار سه
 function captchaTest(){const tiles=[['♡',1],['✦',0],['♡',1],['☼',0],['●',0],['♡',1],['~',0],['♡',1],['✦',0]];return '<div class="eyebrow">إثبات إنك إنسانة مش روبوت مستعجل</div><h2 class="question">اختاري كل القلوب وبس.</h2><p class="copy">لو اختارتي حاجة مش قلب، الكابتشا هيتقمص.</p><div class="captchaGrid">'+tiles.map((t,i)=>'<button class="captchaTile" data-cap="'+i+'" data-heart="'+t[1]+'">'+t[0]+'</button>').join('')+'</div><div class="reaction">فيه أربع قلوب مستخبيين في وضح النهار.</div><div class="actions" style="margin-top:14px"><button class="btn hot" data-capgo disabled>تأكيد إني إنسانة</button></div>'}
 function complimentPick(){return '<div class="eyebrow">استراحة صغيرة قبل آخر اللفة</div><h2 class="question">إيه أكتر حاجة مميزة في ضي؟</h2><p class="copy">اختاري إجابة واحدة… مع إن الموقع عارف إنهم كلهم.</p><div class="miniChoices"><button class="miniChoice" data-compliment="laugh"><b>ضحكتها</b><span>بتخلّي اليوم أخف.</span></button><button class="miniChoice" data-compliment="heart"><b>قلبها</b><span>اللي بيخلّي اللي حواليها مبسوطين.</span></button><button class="miniChoice" data-compliment="all"><b>كل حاجة فيها</b><span>الإجابة اللي الموقع كان مستنيها.</span></button></div><div class="reaction">اختاري براحتك يا ضي.</div>'}
 function wishStars(){return '<div class="eyebrow">جمعنا أمنيات السنة الجديدة</div><h2 class="question">المسي النجوم الأربع عشان نخبّي جواهم أمنية.</h2><p class="copy">كل نجمة لمسة، ومفيش نجمة هتهرب المرة دي.</p><div class="wishStars">'+[0,1,2,3].map(i=>'<button class="wishStar" data-wish="'+i+'" aria-label="نجمة أمنية">✦</button>').join('')+'</div><div class="reaction">اتجمّعوا 0 من 4 أمنيات.</div>'}
-function tinyLetter(){return '<div class="eyebrow">ورقة صغيرة منّي ليكي</div><h2 class="question">قبل المفاجأة الكبيرة… افتحي دي.</h2><div class="tinyLetter"><button class="btn hot big" data-letter-open>افتحي الورقة</button><div class="tinyLetterBody" hidden><p>لو الرحلة طولت، فده عشان كل خطوة فيها فرصة أقولك إنك غالية عندي.</p><p>خدي نفس… فاضل آخر حاجة ♡</p><button class="btn hot" data-letter-next>كمّلي يا ضي</button></div></div>'}
+const miniQuizItems=[
+ {question:'في اختبار ترتيب الألوان… أنهي لون جه الأول؟',options:['وردي','بنفسجي','ذهبي'],answer:0,success:'صح! الذاكرة شغّالة زي الفل ♡'},
+ {question:'اختبار الصبر بدأ العداد من كام ثانية؟',options:['3 ثواني','5 ثواني','10 ثواني'],answer:1,success:'مظبوط… حتى العداد اللي غدر بينا فاكراه 😄'},
+ {question:'جمعنا كام نجمة عشان نخبي أمنياتك؟',options:['3 نجوم','4 نجوم','5 نجوم'],answer:1,success:'أيوه! الأربع أمنيات لسه منوّرة ✦'}
+];
+function miniQuizQuestion(i){
+ if(i>=miniQuizItems.length)return '<div class="eyebrow">النتيجة الرسمية</div><h2 class="question">اختبار الذاكرة: ممتاز جدًا ♡</h2><p class="copy">جاوبتي على الأسئلة التلاتة… وده إنجاز أكبر من إن الموقع يعترف بيه.</p><div class="actions"><button class="btn hot big" data-quiz-next>كمّلي للمفاجأة</button></div>';
+ const item=miniQuizItems[i];
+ return '<div class="eyebrow">اختبار الذاكرة اللطيف</div><h2 class="question">'+item.question+'</h2><p class="copy">سؤال '+(i+1)+' من '+miniQuizItems.length+' — الغلط مسموح، بس الموقع هيتريق سنة صغيرة.</p><div class="choices">'+item.options.map((o,j)=>'<button class="choice" data-quiz-choice="'+j+'" style="--blob:'+['#ffd6e7','#ddd3ff','#ffe0b9'][j]+'"><b>'+o+'</b><span>اختاري إجابتك ♡</span></button>').join('')+'</div><div class="reaction" aria-live="polite">خدي راحتك يا ضي.</div>';
+}
+function miniQuiz(){return miniQuizQuestion(0)}
+function bindMiniQuiz(){
+ let questionIndex=0;
+ const attach=()=>{
+  card.innerHTML=miniQuizQuestion(questionIndex);
+  if(questionIndex>=miniQuizItems.length){card.querySelector('[data-quiz-next]').onclick=()=>next(400);return}
+  const item=miniQuizItems[questionIndex],options=[...card.querySelectorAll('[data-quiz-choice]')],reaction=card.querySelector('.reaction');
+  options.forEach(button=>button.onclick=()=>{
+   if(button.disabled||navLocked)return;
+   if(+button.dataset.quizChoice!==item.answer){reaction.textContent='مش دي… جربي تاني، من غير خصم درجات 😄';tone('no');return}
+   options.forEach(option=>option.disabled=true);button.classList.add('selected');reaction.textContent=item.success;tone('win');
+   later(()=>{questionIndex++;attach()},700);
+  });
+ };
+ attach();
+}function tinyLetter(){return '<div class="eyebrow">ورقة صغيرة منّي ليكي</div><h2 class="question">قبل المفاجأة الكبيرة… افتحي دي.</h2><div class="tinyLetter"><button class="btn hot big" data-letter-open>افتحي الورقة</button><div class="tinyLetterBody" hidden><p>لو الرحلة طولت، فده عشان كل خطوة فيها فرصة أقولك إنك غالية عندي.</p><p>خدي نفس… فاضل آخر حاجة ♡</p><button class="btn hot" data-letter-next>كمّلي يا ضي</button></div></div>'}
 function bindComplimentPick(){
  const buttons=[...card.querySelectorAll('[data-compliment]')],reaction=card.querySelector('.reaction');
  buttons.forEach(b=>b.onclick=()=>{if(navLocked)return;buttons.forEach(x=>{x.disabled=true;x.classList.toggle('selected',x===b)});reaction.textContent=b.dataset.compliment==='all'?'إجابة كاملة… واضح إنك فاهمة السؤال.':'اختيار حلو، بس الموقع مصرّ إن الإجابة: كلهم مع بعض.';tone('ok');next(950)});
@@ -274,7 +299,8 @@ function bind(){
   if(screen===22){bindCaptcha()}
   if(screen===23){bindComplimentPick()}
   if(screen===24){bindWishStars()}
-  if(screen===25){bindTinyLetter()}
+  if(screen===25){bindMiniQuiz()}
+  if(screen===26){bindTinyLetter()}
   if(screen===screens.length-1){card.querySelectorAll('[data-photo]').forEach(el=>el.onclick=()=>openPhoto(+el.dataset.photo));card.querySelector('[data-restart]')?.addEventListener('click',resetAll);const mt=card.querySelector('[data-music]');if(mt)mt.onclick=toggleFinalAudio}
 }
 function spawnBubbles(){const arena=card.querySelector('.bubbleArena');for(let i=0;i<bubblesLeft;i++){const b=document.createElement('button');b.className='bubble';b.style.left=(5+Math.random()*82)+'%';b.style.top=(8+Math.random()*74)+'%';b.style.animationDelay=(Math.random()*1.8)+'s';b.style.transform='scale('+(.72+Math.random()*.5)+')';b.onclick=()=>{if(!b.isConnected)return;b.remove();bubblesLeft--;tone('pop');card.querySelector('.reaction').textContent=bubblesLeft?'فاضل '+bubblesLeft+'.':'خلصوا… للأسف.';if(!bubblesLeft)next(650)};arena.appendChild(b)}}
